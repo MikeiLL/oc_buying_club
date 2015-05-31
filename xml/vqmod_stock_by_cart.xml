@@ -4,23 +4,26 @@
     <version>1.0</version>
     <vqmver>2.X</vqmver>
     <author>Mike iLL</author>
-    <file name="catalog/view/theme/yooresponsive/template/common/header.tpl">
+    <file name="catalog/view/theme/*/template/common/header.tpl">
         <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
-            <search position="after"><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/stylesheet.css" />]]></search>
+            <search position="after"><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/\(.*?\)/stylesheet/stylesheet.css" />]]></search>
             <add><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/magnific-popup.css" />]]></add>
+            <comment><![CDATA[
+    		TODO: Figure out how to best store and track dependencies like magnific popup.
+  			]]></comment>
         </operation>
     </file>
     
         
         
-    <file name="catalog/view/theme/yooresponsive/template/common/header.tpl">
+    <file name="catalog/view/theme/*/template/common/header.tpl">
         <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
             <search position="before"><![CDATA[<?php foreach ($scripts as $script) { ?>]]></search>
             <add><![CDATA[<script type="text/javascript" src="catalog/view/javascript/jquery.magnific-popup.min.js"></script>]]></add>
         </operation>
     </file>
     
-    <file name="catalog/view/theme/yooresponsive/template/product/product.tpl">
+    <file name="catalog/view/theme/*/template/product/product.tpl">
         
         <operation info="Recebe o Parametro de Redirecionamento e  mostra popup">
             <search position="before"><![CDATA[if (json['success']) {]]></search>
@@ -66,68 +69,7 @@
         
 
     </file>
-    <file name="catalog/view/theme/AbsorptionMode/template/common/header.tpl">
-        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
-            <search position="after"><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/AbsorptionMode/stylesheet/stylesheet.css" />]]></search>
-            <add><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/magnific-popup.css" />]]></add>
-        </operation>
-    </file>
-    
-        
-        
-    <file name="catalog/view/theme/AbsorptionMode/template/common/header.tpl">
-        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
-            <search position="before"><![CDATA[<?php foreach ($scripts as $script) { ?>]]></search>
-            <add><![CDATA[<script type="text/javascript" src="catalog/view/javascript/jquery.magnific-popup.min.js"></script>]]></add>
-        </operation>
-    </file>
-    
-    <file name="catalog/view/theme/AbsorptionMode/template/product/product.tpl">
-        
-        <operation info="Recebe o Parametro de Redirecionamento e  mostra popup">
-            <search position="before"><![CDATA[if (json['success']) {]]></search>
-            <add><![CDATA[
-            //VQMOD//////////////////
-                if (json['redirect2']) {
-                    $.magnificPopup.open({
-                        items: {
-                            src: '<div class="white-popup">We need you to be logged in to buy.</div>',
-                            type: 'inline'
-                        },
-                        callbacks: {
-                            open: function() {
-                                // Will fire when this exact popup is opened
-                                // this - is Magnific Popup object
-                                
-                                var html = 'We need you to be logged in to buy.';
-                                setTimeout(function() {
-                                    $(".white-popup").load('./index.php?route=account/login #content');
-                                }, 2000);
-                            },
-                            Close: function() {
-                                // Will fire when popup is closed
-                                
-                            }
-                            // e.t.c.
-                        }
-                    });
 
-                }
-                //VQMOD/////////////////////////////////////////
-        ]]></add>
-        </operation>
-        
-        <operation info="Let 'em know item doesn't automatically refresh count.">
-            <search position="replace"><![CDATA[<?php echo $stock; ?></div>]]></search>
-            <add><![CDATA[
-            
-            <?php echo $stock; ?> (Refresh page to see updated item quantity.)</div>
-            
-]]></add>
-        </operation>
-        
-
-    </file>
     
     <file name="catalog/controller/checkout/cart.php">
     

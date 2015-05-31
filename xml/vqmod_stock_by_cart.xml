@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+    <id>Stock by Cart</id>
+    <version>1.0</version>
+    <vqmver>2.X</vqmver>
+    <author>Mike iLL</author>
+    <file name="catalog/view/theme/yooresponsive/template/common/header.tpl">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="after"><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/stylesheet.css" />]]></search>
+            <add><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/magnific-popup.css" />]]></add>
+        </operation>
+    </file>
+    
+        
+        
+    <file name="catalog/view/theme/yooresponsive/template/common/header.tpl">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="before"><![CDATA[<?php foreach ($scripts as $script) { ?>]]></search>
+            <add><![CDATA[<script type="text/javascript" src="catalog/view/javascript/jquery.magnific-popup.min.js"></script>]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/view/theme/yooresponsive/template/product/product.tpl">
+        
+        <operation info="Recebe o Parametro de Redirecionamento e  mostra popup">
+            <search position="before"><![CDATA[if (json['success']) {]]></search>
+            <add><![CDATA[
+            //VQMOD//////////////////
+                if (json['redirect2']) {
+                    $.magnificPopup.open({
+                        items: {
+                            src: '<div class="white-popup">We need you to be logged in to buy.</div>',
+                            type: 'inline'
+                        },
+                        callbacks: {
+                            open: function() {
+                                // Will fire when this exact popup is opened
+                                // this - is Magnific Popup object
+                                
+                                var html = 'We need you to be logged in to buy.';
+                                setTimeout(function() {
+                                    $(".white-popup").load('./index.php?route=account/login #content');
+                                }, 2000);
+                            },
+                            Close: function() {
+                                // Will fire when popup is closed
+                                
+                            }
+                            // e.t.c.
+                        }
+                    });
+
+                }
+                //VQMOD/////////////////////////////////////////
+        ]]></add>
+        </operation>
+        
+        <operation info="Let 'em know item doesn't automatically refresh count.">
+            <search position="replace"><![CDATA[<?php echo $stock; ?></div>]]></search>
+            <add><![CDATA[
+            
+            <?php echo $stock; ?> (Refresh page to see updated item quantity.)</div>
+            
+]]></add>
+        </operation>
+        
+
+    </file>
+    <file name="catalog/view/theme/AbsorptionMode/template/common/header.tpl">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="after"><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/AbsorptionMode/stylesheet/stylesheet.css" />]]></search>
+            <add><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/magnific-popup.css" />]]></add>
+        </operation>
+    </file>
+    
+        
+        
+    <file name="catalog/view/theme/AbsorptionMode/template/common/header.tpl">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="before"><![CDATA[<?php foreach ($scripts as $script) { ?>]]></search>
+            <add><![CDATA[<script type="text/javascript" src="catalog/view/javascript/jquery.magnific-popup.min.js"></script>]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/view/theme/AbsorptionMode/template/product/product.tpl">
+        
+        <operation info="Recebe o Parametro de Redirecionamento e  mostra popup">
+            <search position="before"><![CDATA[if (json['success']) {]]></search>
+            <add><![CDATA[
+            //VQMOD//////////////////
+                if (json['redirect2']) {
+                    $.magnificPopup.open({
+                        items: {
+                            src: '<div class="white-popup">We need you to be logged in to buy.</div>',
+                            type: 'inline'
+                        },
+                        callbacks: {
+                            open: function() {
+                                // Will fire when this exact popup is opened
+                                // this - is Magnific Popup object
+                                
+                                var html = 'We need you to be logged in to buy.';
+                                setTimeout(function() {
+                                    $(".white-popup").load('./index.php?route=account/login #content');
+                                }, 2000);
+                            },
+                            Close: function() {
+                                // Will fire when popup is closed
+                                
+                            }
+                            // e.t.c.
+                        }
+                    });
+
+                }
+                //VQMOD/////////////////////////////////////////
+        ]]></add>
+        </operation>
+        
+        <operation info="Let 'em know item doesn't automatically refresh count.">
+            <search position="replace"><![CDATA[<?php echo $stock; ?></div>]]></search>
+            <add><![CDATA[
+            
+            <?php echo $stock; ?> (Refresh page to see updated item quantity.)</div>
+            
+]]></add>
+        </operation>
+        
+
+    </file>
+    
+    <file name="catalog/controller/checkout/cart.php">
+    
+     <operation info="If customer not logged in, redirect to login.">
+            <search position="before"><![CDATA[public function add() {]]></search>
+            <add><![CDATA[
+            //VQMOD
+    public function write_to_file($message){
+        $handle = fopen("/Applications/MAMP/logs/open_cart_reader.php", "a+");
+        fwrite($handle, "\nMessage:\t " . $message);
+        fclose($handle);
+    }
+        //VQMOD
+]]></add>
+        </operation>
+        <operation info="If customer not logged in, redirect to login.">
+            <search position="after" offset="4"><![CDATA[ public function add() { ]]></search>
+            <add><![CDATA[
+            //VQMOD
+        if(!$this->customer->isLogged()){
+            $json['redirect2']=$this->url->link('account/login');
+        }
+        foreach($json as $jsonitem) {
+        	if (is_array($jsonitem)) {
+        		$this->write_to_file(implode($jsonitem));
+        		}else{
+        		$this->write_to_file($jsonitem);
+        		}
+        	}
+        $this->response->setOutput(json_encode($json));	
+        //VQMOD
+]]></add>
+        </operation>
+
+    </file>
+    
+    <file name="system/library/cart.php">
+        <operation info="Methods to Add, Subtrack, Update stock and Alert Admin of low stock.">
+            <search position="before"><![CDATA[public function add($product_id, $qty = 1, $option, $profile_id = '') {]]></search>
+            <add><![CDATA[
+            //VQMOD//
+    public function sub_stock($pid, $qty_des, $item_key) { 
+        $item_key = 0; //We're not dealing with options yet comment out query to that table    
+        //$this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = (quantity - " . (int)$qty_des . ") WHERE product_option_value_id = '" . (int)$item_key . "' AND subtract = '1'");		
+        //How many in stock now?
+        $qry = $this->db->query("SELECT quantity, model FROM " . DB_PREFIX . "product WHERE product_id = '" . $pid . "'");
+        //Remove requested amount
+        $this->db->query("UPDATE " . DB_PREFIX . "product SET quantity = (quantity - " . (int) $qty_des . ") WHERE product_id = '" . (int) $pid . "' AND subtract = '1'");
+        
+        $inventory = $qry->row['quantity'];
+        $model = $qry->row['model'];
+        $name = $qry->row['name'];
+        $new_inventory = $inventory - $qty_des;
+        
+        if (($inventory > 4) && ($new_inventory < 5)){
+            $this->alert_stock($model, $name, $new_inventory);
+        }
+    }
+
+    ////VQMOD////
+    
+    //VQMOD///
+    public function add_stock($key) {
+        $products = $this->getProducts();
+        $pid = $products[$key]['product_id'];
+        $qty_des = $products[$key]['quantity'];
+        if ($products[$key]['option']) {
+            $opt_id = $products[$key]['option'][0]['product_option_value_id'];
+            $this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = (quantity + " . (int) $qty_des . ") WHERE product_option_value_id = '" . (int) $opt_id . "' AND subtract = '1'");
+        }
+        $this->db->query("UPDATE " . DB_PREFIX . "product SET quantity = (quantity + " . (int) $qty_des . ") WHERE product_id = '" . (int) $pid . "' AND subtract = '1'");
+    }
+//VQMOD///  
+   //VQMOD
+    public function upd_stock($key,$new_cart_qty) {
+        //retrieve the current cart
+        $products = $this->getProducts();
+        $pid = $products[$key]['product_id'];
+        $in_cart = $products[$key]['quantity'];
+        //are we changing quantity?
+        if ((int) $new_cart_qty != (int) $in_cart) {
+            $model = $products[$key]['model'];
+            $name = $products[$key]['name'];
+            //How many in current inventory?
+            $qry = $this->db->query("SELECT quantity FROM " . DB_PREFIX . "product WHERE product_id = '" . $pid . "'");
+            $inventory = $qry->row['quantity'];
+            //if new quantity is > old cart qty ? difference will be positive : otherwise negative
+            $difference = $new_cart_qty - $in_cart;
+            $new_inventory = $inventory - $difference;
+        
+            if (($inventory > 4) && ($new_inventory < 5)){
+                $this->alert_stock($model, $name, $new_inventory);
+                }
+             if ($products[$key]['option']) {
+                $opt_id = $products[$key]['option'][0]['product_option_value_id'];
+                $this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = " . $new_inventory . " WHERE product_option_value_id = '" . (int) $opt_id . "' AND subtract = '1'");
+                }
+                else
+                {
+                    $this->db->query("UPDATE " . DB_PREFIX . "product SET quantity = " . $new_inventory . " WHERE product_id = '" . (int) $pid . "' AND subtract = '1'");
+                }    
+        }
+    }
+//VQMOD            
+   //VQMOD
+    public function upd_stock_old($key,$qty) {
+        
+        $produtos = $this->getProducts();
+        $pid = $produtos[$key]['product_id'];
+        $qtd = $produtos[$key]['quantity'];
+        if ((int) $qty != (int) $qtd) {
+            if ($produtos[$key]['option']) {
+                $opt_id = $produtos[$key]['option'][0]['product_option_value_id'];
+                if ($qty > $qtd) {
+                    $qtx = (int) $qty - (int) $qtd;
+                    $this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = (quantity - " . (int) $qtx . ") WHERE product_option_value_id = '" . (int) $opt_id . "' AND subtract = '1'");
+                } else {
+                    $qtx = (int) $qtd - (int) $qty;
+                    $this->db->query("UPDATE " . DB_PREFIX . "product_option_value SET quantity = (quantity + " . (int) $qtx . ") WHERE product_option_value_id = '" . (int) $opt_id . "' AND subtract = '1'");
+                }
+            }
+            if ($qty > $qtd) {
+                $qtx = (int) $qty - (int) $qtd;
+                $this->db->query("UPDATE " . DB_PREFIX . "product SET quantity = (quantity - " . (int) $qtx . ") WHERE product_id = '" . (int) $pid . "' AND subtract = '1'");
+            } else {
+                $qtx = (int) $qtd - (int) $qty;
+                $this->db->query("UPDATE " . DB_PREFIX . "product SET quantity = (quantity + " . (int) $qtx . ") WHERE product_id = '" . (int) $pid . "' AND subtract = '1'");
+            }
+        }
+        
+    }
+//VQMOD          
+//VQMOD  
+    public function alert_stock($model, $name, $new_inventory) {
+            
+        //$qry = $this->db->query("SELECT quantity, model FROM " . DB_PREFIX . "product WHERE product_id = '" . $pid . "'");
+            $mail = new Mail($this->config->get('config_mail_protocol'), $this->config->get('config_smtp_host'), $this->config->get('config_smtp_username'), html_entity_decode($this->config->get('config_smtp_password'), ENT_QUOTES, 'UTF-8'), $this->config->get('config_smtp_port'), $this->config->get('config_smtp_timeout'));                   
+            $mail->setTo($this->config->get('config_email'));
+            $mail->setFrom($this->config->get('config_email'));
+            $mail->setSender($this->config->get('config_email'));
+            $mail->setSubject('Low Stock on: ' . $model . ' (' . $new_inventory . ')');
+            $mail->setText('Low Stock on: ' . $model . " (" . $name . ")\n" . $new_inventory . " remaining.\nThank you for your great work and have a wonderful day.");
+            $mail->send();
+    }
+//VQMOD  
+    public function write_to_file($message){
+        $handle = fopen("/Applications/MAMP/logs/open_cart_reader.php", "a+");
+        fwrite($handle, "\nMessage:\t " . $message);
+        fclose($handle);
+    }
+    public function pr($data){
+        echo "<pre>";
+        print_r($data);
+        echo "</pre>";
+    }
+]]></add>
+        </operation>
+        
+        <operation info="Call function to subtract stock. /\">
+            <search position="before"><![CDATA[if ($option) {]]></search>
+            <add><![CDATA[
+            //VQMOD/////
+        if($option){
+            foreach ($option as $item) {
+                $var = $item;
+            }
+        }else{
+            $var='';
+        }
+        $this->sub_stock($product_id, $qty, $var);
+        //VQMOD////
+]]></add>
+        </operation>
+        
+        <operation info="Call function to add stock. /\">
+            <search position="after"><![CDATA[if (isset($this->session->data['cart'][$key])) {]]></search>
+            <add><![CDATA[
+            //VQMOD
+            $this->add_stock($key);
+            //VQMOD
+]]></add>
+        </operation>
+        
+        <operation info="Call function to update stock. /\">
+            <search index="2" position="after"><![CDATA[if ((int)$qty && ((int)$qty > 0)) {]]></search>
+            <add><![CDATA[
+            //VQMOD//
+            $this->upd_stock($key,$qty);
+            //VQMOD
+]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/checkout/checkout.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace"><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {]]></search>
+            <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/checkout/payment_address.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace"><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {]]></search>
+            <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/checkout/shipping_address.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace"><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {]]></search>
+            <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/checkout/shipping_method.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace"><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {]]></search>
+            <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/checkout/payment_method.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace"><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {]]></search>
+            <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/checkout/confirm.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace"><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {]]></search>
+            <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/model/checkout/order.php">
+        <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
+            <search position="replace" offset="8"><![CDATA[foreach ($order_product_query->rows as $order_product) {]]></search>
+            <add><![CDATA[]]></add>
+        </operation>
+    </file>
+    
+    
+
+</modification>

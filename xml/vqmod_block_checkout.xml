@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+    <id>Block Checkout</id>
+    <version>1.0</version>
+    <vqmver>2.X</vqmver>
+    <author>MikeiLL</author>
+    <file name="catalog/view/theme/*/template/checkout/checkout.tpl">
+        <operation info="Block users from checking out">
+            <search position="replace" offset="1000"><![CDATA[<h1><?php echo $heading_title; ?></h1>]]></search>
+            <add><![CDATA[  <h1><?php echo $heading_title; ?></h1>
+                <h2>Order will be processed after the food shipment has arrived.</h2>
+                <p>&nbsp;</p>
+                <p>Shopping carts are automatically saved, so please just set the contents of your shopping cart to match your desired order.</p>
+                <p>Remember that prices are approximate and item availability is not guaranteed.</p>
+                <?php echo $footer;?>]]>
+            </add>
+        </operation>
+    </file>
+</modification>

@@ -1,0 +1,483 @@
+<modification>
+  <id>Saved Cart</id>
+  <version>1.1</version>
+  <vqmver>2.3.2</vqmver>
+  <author>gustvao@gmail.com</author>
+
+  <file name="admin/view/template/sale/customer_list.tpl">   
+    
+	<operation>
+      <search position="before"><![CDATA[<td class="right"><?php echo $column_action; ?></td>]]></search>
+      <add><![CDATA[
+	  <td class="right">Saved Cart</td>
+	  ]]></add>   
+	</operation>
+		  
+    <operation>
+      <search position="before"><![CDATA[<td align="right"><a onclick="filter();" class="button"><?php echo $button_filter; ?></a></td>]]></search>
+      <add><![CDATA[	  
+              <td><select name="filter_saved_cart">
+                  <option value="*"></option>
+                  <?php if ($filter_saved_cart) { ?>
+                  <option value="1" selected="selected"><?php echo $text_yes; ?></option>
+                  <?php } else { ?>
+                  <option value="1"><?php echo $text_yes; ?></option>
+                  <?php } ?>
+                  <?php if (!is_null($filter_saved_cart) && !$filter_saved_cart) { ?>
+                  <option value="0" selected="selected"><?php echo $text_no; ?></option>
+                  <?php } else { ?>
+                  <option value="0"><?php echo $text_no; ?></option>
+                  <?php } ?>
+                </select></td>	  
+	  ]]></add>   
+	</operation>
+
+    <operation>
+      <search position="before"><![CDATA[<td class="right"><?php foreach ($customer['action'] as $action) { ?>]]></search>
+      <add><![CDATA[	  
+              <td class="left"><?php echo $customer['saved_cart_yn']; ?></td>  
+	  ]]></add>   
+	</operation>
+	
+	
+    <operation>
+      <search position="before"><![CDATA[var filter_approved = $('select[name=\'filter_approved\']').attr('value');]]></search>
+      <add><![CDATA[	  
+	
+	var filter_saved_cart = $('select[name=\'filter_saved_cart\']').attr('value');
+	
+	if (filter_saved_cart != '*') {
+		url += '&filter_saved_cart=' + encodeURIComponent(filter_saved_cart);
+	}	
+	
+	  ]]></add>   
+	</operation>
+		
+	
+  </file>  
+  
+  <file name="admin/view/template/sale/customer_form.tpl">   
+    <operation>
+      <search position="before" index="1"><![CDATA[<?php if ($customer_id) { ?>]]></search>
+      <add><![CDATA[<a href="#tab-savedcart">Saved Cart</a>]]></add>   
+	</operation>
+  </file>
+	  
+  <file name="admin/view/template/sale/customer_form.tpl">   
+    <operation>
+      <search position="before"><![CDATA[<div id="tab-transaction">]]></search>
+      <add><![CDATA[   
+  
+      <div id="tab-savedcart">
+        <table class="list">
+          <thead>
+            <tr>
+              <td class="left"><?php echo $column_product; ?></td>
+              <td class="left"><?php echo $column_model; ?></td>
+              <td class="right"><?php echo $column_quantity; ?></td>
+              <td class="right"><?php echo $column_price; ?></td>
+              <td class="right"><?php echo $column_total; ?></td>
+            </tr>
+          </thead>
+          <tbody>
+		    <?php if($show_saved_cart==0): ?>
+			<tr>
+			  <td class="center" colspan="5"><?php echo $text_no_results; ?></td>
+			</tr>
+			<?php else: ?>
+            <?php foreach ($products as $product) { ?>
+            <tr>
+              <td class="left"><?php echo $product['name']; ?>
+                <?php foreach ($product['option'] as $option) { ?>
+                <br />
+                <?php if ($option['type'] != 'file') { ?>
+                &nbsp;<small> - <?php echo $option['name']; ?>: <?php echo $option['option_value']; ?></small>
+                <?php } else { ?>
+                &nbsp;<small> - <?php echo $option['name']; ?>: <a href="<?php echo $option['href']; ?>"><?php echo $option['option_value']; ?></a></small>
+                <?php } ?>
+                <?php } ?></td>
+              <td class="left"><?php echo $product['model']; ?></td>
+              <td class="right"><?php echo $product['quantity']; ?></td>
+              <td class="right"><?php echo $product['price']; ?></td>
+              <td class="right"><?php echo $product['total']; ?></td>
+            </tr>
+            <?php } ?>
+          </tbody>
+          <tbody id="totals">
+            <tr>
+              <td colspan="4" class="right" style="font-weight:bold"><?php echo $column_total; ?></td>
+              <td class="right" style="font-weight:bold"><?php echo $total_cart; ?></td>
+            </tr>
+          </tbody>
+		  <?php endif; ?>
+        </table>
+      </div>
+
+     ]]></add>      
+    </operation>
+  </file>
+  
+  
+  <file name="admin/model/sale/customer.php">   
+    <operation>
+      <search position="before"><![CDATA[if (isset($data['filter_approved']) && !is_null($data['filter_approved'])) {]]></search>
+      <add><![CDATA[
+	  
+		if (isset($data['filter_saved_cart']) && !is_null($data['filter_saved_cart'])) {
+			$implode[] = ( (int)$data['filter_saved_cart'] == 0 ? "cart = 'a:0:{}' OR cart = ''" : "cart <> 'a:0:{}' AND cart <> '' " );
+		}	  
+	  
+	  ]]></add>   
+	</operation>
+  </file>
+  
+    
+
+  <file name="admin/controller/sale/customer.php">   
+
+    <operation>
+      <search position="after"><![CDATA[$this->data['customers'][] = array(]]></search>
+      <add><![CDATA[
+				'saved_cart_yn'         => (!$result['cart'] || $result['cart'] == '' || empty($result['cart']) || $result['cart'] == 'a:0:{}' ? $this->language->get('text_no') : $this->language->get('text_yes')),
+	  ]]></add>
+	</operation>
+	
+    <operation>
+      <search position="before" index="1,2,3,4,6,7,8,9"><![CDATA[if (isset($this->request->get['filter_approved'])) {]]></search>
+      <add><![CDATA[
+			if (isset($this->request->get['filter_saved_cart'])) {
+				$url .= '&filter_saved_cart=' . $this->request->get['filter_saved_cart'];
+			}
+	  ]]></add>
+	</operation>
+	
+    <operation>
+      <search position="before" index="5"><![CDATA[if (isset($this->request->get['filter_approved'])) {]]></search>
+      <add><![CDATA[
+		if (isset($this->request->get['filter_saved_cart'])) {
+			$filter_saved_cart = $this->request->get['filter_saved_cart'];
+		} else {
+			$filter_saved_cart = null;
+		}
+	  ]]></add>
+	</operation>	
+
+    <operation>
+      <search position="after"><![CDATA['filter_approved'          => $filter_approved,]]></search>
+      <add><![CDATA[
+			'filter_saved_cart'          => $filter_saved_cart, 
+	  ]]></add>
+	</operation>
+	
+    <operation>
+      <search position="after"><![CDATA[$this->data['filter_approved'] = $filter_approved;]]></search>
+      <add><![CDATA[
+					$this->data['filter_saved_cart'] = $filter_saved_cart;
+	  ]]></add>
+	</operation>	
+	
+
+
+
+
+    <operation>
+      <search position="after"><![CDATA[function getForm() {]]></search>
+      <add><![CDATA[$this->savedcart();]]></add>
+	</operation>
+	
+	<operation>
+      <search position="before"><![CDATA[public function insert() {]]></search>
+	  <add><![CDATA[  
+    
+	public function savedcart() {
+	
+		$this->load->language('sale/order');
+		
+		$this->data['column_product'] = $this->language->get('column_product');
+		$this->data['column_model'] = $this->language->get('column_model');
+		$this->data['column_quantity'] = $this->language->get('column_quantity');
+		$this->data['column_price'] = $this->language->get('column_price');
+		$this->data['column_total'] = $this->language->get('column_total');		
+		$this->data['text_no_results'] = $this->language->get('text_no_results');
+		
+		$result = $this->model_sale_customer->getCustomer($this->request->get['customer_id']);
+			
+		if(!$result['cart'] || $result['cart'] == '' || empty($result['cart']) || $result['cart'] == 'a:0:{}')
+			$this->data['show_saved_cart'] = 0;
+			
+		else {
+			
+			$this->data['show_saved_cart'] = 1;	
+			
+			$this->data['cart'] = $result['cart'];
+			
+			$total_cart = 0;
+			
+			
+			  foreach (unserialize($result['cart']) as $key => $quantity) {
+			  
+				$product = explode(':', $key);
+				$product_id = $product[0];
+				$stock = true;
+		  
+						// Options
+						if (isset($product[1]) && $product[1] != '') { 
+							$options = unserialize(base64_decode($product[1]));
+						} else {
+							$options = array();
+						} 
+												
+						$product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id) WHERE p.product_id = '" . (int)$product_id . "' AND pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND p.date_available <= NOW() AND p.status = '1'");
+						
+						if ($product_query->num_rows) {
+							$option_price = 0;
+							$option_points = 0;
+							$option_weight = 0;
+			
+							$option_data = array();
+			
+							foreach ($options as $product_option_id => $option_value) {
+		
+								$option_query = $this->db->query("SELECT po.product_option_id, po.option_id, od.name, o.type FROM " . DB_PREFIX . "product_option po LEFT JOIN `" . DB_PREFIX . "option` o ON (po.option_id = o.option_id) LEFT JOIN " . DB_PREFIX . "option_description od ON (o.option_id = od.option_id) WHERE po.product_option_id = '" . (int)$product_option_id . "' AND po.product_id = '" . (int)$product_id . "' AND od.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+								
+								if ($option_query->num_rows) {
+									if ($option_query->row['type'] == 'select' || $option_query->row['type'] == 'radio' || $option_query->row['type'] == 'image') {
+										$option_value_query = $this->db->query("SELECT pov.option_value_id, ovd.name, pov.quantity, pov.subtract, pov.price, pov.price_prefix, pov.points, pov.points_prefix, pov.weight, pov.weight_prefix FROM " . DB_PREFIX . "product_option_value pov LEFT JOIN " . DB_PREFIX . "option_value ov ON (pov.option_value_id = ov.option_value_id) LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE pov.product_option_value_id = '" . (int)$option_value . "' AND pov.product_option_id = '" . (int)$product_option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+										
+										if ($option_value_query->num_rows) {
+											if ($option_value_query->row['price_prefix'] == '+') {
+												$option_price += $option_value_query->row['price'];
+											} elseif ($option_value_query->row['price_prefix'] == '-') {
+												$option_price -= $option_value_query->row['price'];
+											}
+			
+											if ($option_value_query->row['points_prefix'] == '+') {
+												$option_points += $option_value_query->row['points'];
+											} elseif ($option_value_query->row['points_prefix'] == '-') {
+												$option_points -= $option_value_query->row['points'];
+											}
+																		
+											if ($option_value_query->row['weight_prefix'] == '+') {
+												$option_weight += $option_value_query->row['weight'];
+											} elseif ($option_value_query->row['weight_prefix'] == '-') {
+												$option_weight -= $option_value_query->row['weight'];
+											}
+											
+											if ($option_value_query->row['subtract'] && (!$option_value_query->row['quantity'] || ($option_value_query->row['quantity'] < $quantity))) {
+												$stock = false;
+											}
+											
+											$option_data[] = array(
+												'product_option_id'       => $product_option_id,
+												'product_option_value_id' => $option_value,
+												'option_id'               => $option_query->row['option_id'],
+												'option_value_id'         => $option_value_query->row['option_value_id'],
+												'name'                    => $option_query->row['name'],
+												'option_value'            => $option_value_query->row['name'],
+												'type'                    => $option_query->row['type'],
+												'quantity'                => $option_value_query->row['quantity'],
+												'subtract'                => $option_value_query->row['subtract'],
+												'price'                   => $option_value_query->row['price'],
+												'price_prefix'            => $option_value_query->row['price_prefix'],
+												'points'                  => $option_value_query->row['points'],
+												'points_prefix'           => $option_value_query->row['points_prefix'],									
+												'weight'                  => $option_value_query->row['weight'],
+												'weight_prefix'           => $option_value_query->row['weight_prefix']
+											);								
+										}
+									} elseif ($option_query->row['type'] == 'checkbox' && is_array($option_value)) {
+										foreach ($option_value as $product_option_value_id) {
+											$option_value_query = $this->db->query("SELECT pov.option_value_id, ovd.name, pov.quantity, pov.subtract, pov.price, pov.price_prefix, pov.points, pov.points_prefix, pov.weight, pov.weight_prefix FROM " . DB_PREFIX . "product_option_value pov LEFT JOIN " . DB_PREFIX . "option_value ov ON (pov.option_value_id = ov.option_value_id) LEFT JOIN " . DB_PREFIX . "option_value_description ovd ON (ov.option_value_id = ovd.option_value_id) WHERE pov.product_option_value_id = '" . (int)$product_option_value_id . "' AND pov.product_option_id = '" . (int)$product_option_id . "' AND ovd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+											
+											if ($option_value_query->num_rows) {
+												if ($option_value_query->row['price_prefix'] == '+') {
+													$option_price += $option_value_query->row['price'];
+												} elseif ($option_value_query->row['price_prefix'] == '-') {
+													$option_price -= $option_value_query->row['price'];
+												}
+			
+												if ($option_value_query->row['points_prefix'] == '+') {
+													$option_points += $option_value_query->row['points'];
+												} elseif ($option_value_query->row['points_prefix'] == '-') {
+													$option_points -= $option_value_query->row['points'];
+												}
+																			
+												if ($option_value_query->row['weight_prefix'] == '+') {
+													$option_weight += $option_value_query->row['weight'];
+												} elseif ($option_value_query->row['weight_prefix'] == '-') {
+													$option_weight -= $option_value_query->row['weight'];
+												}
+												
+												if ($option_value_query->row['subtract'] && (!$option_value_query->row['quantity'] || ($option_value_query->row['quantity'] < $quantity))) {
+													$stock = false;
+												}
+												
+												$option_data[] = array(
+													'product_option_id'       => $product_option_id,
+													'product_option_value_id' => $product_option_value_id,
+													'option_id'               => $option_query->row['option_id'],
+													'option_value_id'         => $option_value_query->row['option_value_id'],
+													'name'                    => $option_query->row['name'],
+													'option_value'            => $option_value_query->row['name'],
+													'type'                    => $option_query->row['type'],
+													'quantity'                => $option_value_query->row['quantity'],
+													'subtract'                => $option_value_query->row['subtract'],
+													'price'                   => $option_value_query->row['price'],
+													'price_prefix'            => $option_value_query->row['price_prefix'],
+													'points'                  => $option_value_query->row['points'],
+													'points_prefix'           => $option_value_query->row['points_prefix'],
+													'weight'                  => $option_value_query->row['weight'],
+													'weight_prefix'           => $option_value_query->row['weight_prefix']
+												);								
+											}
+										}						
+									} elseif ($option_query->row['type'] == 'text' || $option_query->row['type'] == 'textarea' || $option_query->row['type'] == 'file' || $option_query->row['type'] == 'date' || $option_query->row['type'] == 'datetime' || $option_query->row['type'] == 'time') {
+										$option_data[] = array(
+											'product_option_id'       => $product_option_id,
+											'product_option_value_id' => '',
+											'option_id'               => $option_query->row['option_id'],
+											'option_value_id'         => '',
+											'name'                    => $option_query->row['name'],
+											'option_value'            => $option_value,
+											'type'                    => $option_query->row['type'],
+											'quantity'                => '',
+											'subtract'                => '',
+											'price'                   => '',
+											'price_prefix'            => '',
+											'points'                  => '',
+											'points_prefix'           => '',								
+											'weight'                  => '',
+											'weight_prefix'           => ''
+										);						
+									}
+								}
+							} 
+						
+							$customer_group_id = $result['customer_group_id'];
+												
+							$price = $product_query->row['price'];
+							
+							// Product Discounts
+							$discount_quantity = 0;
+							
+							foreach (unserialize($result['cart']) as $key_2 => $quantity_2) {
+								$product_2 = explode(':', $key_2);
+								
+								if ($product_2[0] == $product_id) {
+									$discount_quantity += $quantity_2;
+								}
+							}
+							
+							$product_discount_query = $this->db->query("SELECT price FROM " . DB_PREFIX . "product_discount WHERE product_id = '" . (int)$product_id . "' AND customer_group_id = '" . (int)$customer_group_id . "' AND quantity <= '" . (int)$discount_quantity . "' AND ((date_start = '0000-00-00' OR date_start < NOW()) AND (date_end = '0000-00-00' OR date_end > NOW())) ORDER BY quantity DESC, priority ASC, price ASC LIMIT 1");
+							
+							if ($product_discount_query->num_rows) {
+								$price = $product_discount_query->row['price'];
+							}
+							
+							// Product Specials
+							$product_special_query = $this->db->query("SELECT price FROM " . DB_PREFIX . "product_special WHERE product_id = '" . (int)$product_id . "' AND customer_group_id = '" . (int)$customer_group_id . "' AND ((date_start = '0000-00-00' OR date_start < NOW()) AND (date_end = '0000-00-00' OR date_end > NOW())) ORDER BY priority ASC, price ASC LIMIT 1");
+						
+							if ($product_special_query->num_rows) {
+								$price = $product_special_query->row['price'];
+							}						
+					
+							// Reward Points
+							$product_reward_query = $this->db->query("SELECT points FROM " . DB_PREFIX . "product_reward WHERE product_id = '" . (int)$product_id . "' AND customer_group_id = '" . (int)$customer_group_id . "'");
+							
+							if ($product_reward_query->num_rows) {	
+								$reward = $product_reward_query->row['points'];
+							} else {
+								$reward = 0;
+							}
+							
+							// Downloads		
+							$download_data = array();     		
+							
+							$download_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_to_download p2d LEFT JOIN " . DB_PREFIX . "download d ON (p2d.download_id = d.download_id) LEFT JOIN " . DB_PREFIX . "download_description dd ON (d.download_id = dd.download_id) WHERE p2d.product_id = '" . (int)$product_id . "' AND dd.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+						
+							foreach ($download_query->rows as $download) {
+								$download_data[] = array(
+									'download_id' => $download['download_id'],
+									'name'        => $download['name'],
+									'filename'    => $download['filename'],
+									'mask'        => $download['mask'],
+									'remaining'   => $download['remaining']
+								);
+							}
+							
+							// Stock
+							if (!$product_query->row['quantity'] || ($product_query->row['quantity'] < $quantity)) {
+								$stock = false;
+							}
+							
+							$this->data['products'][$key] = array(
+								'key'             => $key,
+								'product_id'      => $product_query->row['product_id'],
+								'name'            => $product_query->row['name'],
+								'model'           => $product_query->row['model'],
+								'shipping'        => $product_query->row['shipping'],
+								'image'           => $product_query->row['image'],
+								'option'          => $option_data,
+								'download'        => $download_data,
+								'quantity'        => $quantity,
+								'minimum'         => $product_query->row['minimum'],
+								'subtract'        => $product_query->row['subtract'],
+								'stock'           => $stock,
+								'price'           => ($price + $option_price),
+								'total'           => ($price + $option_price) * $quantity,
+								'reward'          => $reward * $quantity,
+								'points'          => ($product_query->row['points'] ? ($product_query->row['points'] + $option_points) * $quantity : 0),
+								'tax_class_id'    => $product_query->row['tax_class_id'],
+								'weight'          => ($product_query->row['weight'] + $option_weight) * $quantity,
+								'weight_class_id' => $product_query->row['weight_class_id'],
+								'length'          => $product_query->row['length'],
+								'width'           => $product_query->row['width'],
+								'height'          => $product_query->row['height'],
+								'length_class_id' => $product_query->row['length_class_id']					
+							);
+							
+						$total_cart += ($price + $option_price) * $quantity;
+						
+						} else {
+							//$this->remove($key);
+						}
+					}
+			  
+			  $this->data['total_cart'] = $total_cart;
+			  
+			  if(count($this->data['products'])==0){
+				$this->data['products'][0] = array(
+					'key'             => 0,
+					'product_id'      => 0,
+					'name'            => 'Cannot Retrieve Product. May have already been deleted from database.',
+					'model'           => '-',
+					//'shipping'        => $product_query->row['shipping'],
+					//'image'           => $product_query->row['image'],
+					//'option'          => $option_data,
+					//'download'        => $download_data,
+					'quantity'        => $quantity,
+					//'minimum'         => $product_query->row['minimum'],
+					//'subtract'        => $product_query->row['subtract'],
+					//'stock'           => $stock,
+					'price'           => 'Cannot Retrieve',
+					'total'           => 'Cannot Retrieve',
+					//'reward'          => $reward * $quantity,
+					//'points'          => ($product_query->row['points'] ? ($product_query->row['points'] + $option_points) * $quantity : 0),
+					//'tax_class_id'    => $product_query->row['tax_class_id'],
+					//'weight'          => ($product_query->row['weight'] + $option_weight) * $quantity,
+					//'weight_class_id' => $product_query->row['weight_class_id'],
+					//'length'          => $product_query->row['length'],
+					//'width'           => $product_query->row['width'],
+					//'height'          => $product_query->row['height'],
+					//'length_class_id' => $product_query->row['length_class_id']					
+				);
+			  }
+				
+		}
+	}  
+  
+     ]]></add>      
+    </operation>
+  </file>
+  
+</modification>

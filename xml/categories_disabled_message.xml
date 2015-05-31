@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+    <id>Categories Disabled Message</id>
+    <version>1.0</version>
+    <vqmver>2.X</vqmver>
+    <author>Mike iLL</author>
+        
+        
+    <file name="catalog/view/theme/yooresponsive/template/common/home.tpl">
+        <operation info="Display a message if all categories are disabled.">
+            <search position="after"><![CDATA[<h1 style="display: none;"><?php echo $heading_title; ?></h1>]]></search>
+            <add><![CDATA[
+            
+             <?php if(!$categories) { ?>
+    <div style="font-size:2em">
+      <p>Pensacola Coop is a cooperative buying club. Read more about us on the About Us page.</p>
+      <p>In our two week order cycle, items are available for purchase on the first week of the cycle between Thursday morning and Sunday at 10am.</p>
+      <p><font color="red">If you're seeing this message</font>, we are in part of the cycle where items are not available. Feel free to look around, sign-up if you like, and check back
+      next Thursday (OK, might be the following Thursday) for available items.</p>
+      <p></p>Thanks and have a great day.</p>
+      </div>
+      <?php } ?>
+            ]]></add>
+        </operation>
+    </file>
+    
+    <file name="catalog/controller/common/home.php">
+        <operation info="Add all enabled categories to the data object.">
+            <search position="before"><![CDATA[$this->children = array(]]></search>
+            <add><![CDATA[
+            
+		$this->load->model('catalog/category');
+
+		$this->data['categories'] = array();
+
+		foreach ($this->model_catalog_category->getCategories(array()) as $category) {
+			$this->data['categories'][] = array(
+				'category_id' => $category['category_id'],
+				'name'        => $category['name']
+			);
+		}
+            ]]></add>
+        </operation>
+    </file>
+    
+</modification>

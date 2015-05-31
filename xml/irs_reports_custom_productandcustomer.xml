@@ -1,0 +1,278 @@
+<modification>
+
+	<id>Export Excel : Product and Customer Reports</id>
+	<version>1.0</version>
+	<vqmver>2.3.2 +</vqmver>
+	<author>IRS</author>
+  
+<!-- Product Purchased Report --> 
+	<!-- Model -->
+	
+    <file name="admin/model/report/product.php">
+		 
+    <operation>
+		<search position="after" offset="0"><![CDATA[class ModelReportProduct extends Model {]]></search>
+        <add><![CDATA[
+
+	public function getPurchasedProducts($data = array()) {
+		$sql = "SELECT ooc.customer_id, oop.product_id, oop.name as productname, op.minimum, sum(oop.quantity) as totalquantity FROM " . DB_PREFIX . "order oor
+INNER JOIN " . DB_PREFIX . "customer ooc ON(ooc.customer_id=oor.customer_id)
+INNER JOIN " . DB_PREFIX . "order_product oop ON(oop.order_id=oor.order_id)
+INNER JOIN " . DB_PREFIX . "product op ON(op.product_id=oop.product_id)";
+
+		if (!empty($data['filter_order_status_id'])) {
+			$sql .= " WHERE o.order_status_id = '" . (int)$data['filter_order_status_id'] . "'";
+		} else {
+			$sql .= " WHERE oor.order_status_id > '0'";
+		}
+
+		if (!empty($data['filter_date_start'])) {
+			$sql .= " AND DATE(oor.date_added) >= '" . $this->db->escape($data['filter_date_start']) . "'";
+		}
+
+		if (!empty($data['filter_date_end'])) {
+			$sql .= " AND DATE(oor.date_added) <= '" . $this->db->escape($data['filter_date_end']) . "'";
+		}
+
+		$sql .= " GROUP BY oop.product_id ORDER BY oop.name";
+
+		$query = $this->db->query($sql);
+
+		return $query->rows;
+	}
+	
+	public function getPurchasedCustomers($data = array()) {
+		$sql = "SELECT ooc.customer_id, CONCAT(ooc.firstname,ooc.lastname) as customer FROM " . DB_PREFIX . "order oor
+INNER JOIN " . DB_PREFIX . "customer ooc ON(ooc.customer_id=oor.customer_id)
+INNER JOIN " . DB_PREFIX . "order_product oop ON(oop.order_id=oor.order_id)";
+
+
+		if (!empty($data['filter_order_status_id'])) {
+			$sql .= " WHERE o.order_status_id = '" . (int)$data['filter_order_status_id'] . "'";
+		} else {
+			$sql .= " WHERE oor.order_status_id > '0'";
+		}
+
+		if (!empty($data['filter_date_start'])) {
+			$sql .= " AND DATE(oor.date_added) >= '" . $this->db->escape($data['filter_date_start']) . "'";
+		}
+
+		if (!empty($data['filter_date_end'])) {
+			$sql .= " AND DATE(oor.date_added) <= '" . $this->db->escape($data['filter_date_end']) . "'";
+		}
+
+		$sql .= " GROUP BY ooc.customer_id";
+		
+		$query = $this->db->query($sql);
+
+		return $query->rows;
+	}
+
+	public function getProductTotal($data) {
+		$sql = "SELECT sum(oop.quantity) as total FROM " . DB_PREFIX . "order oor
+INNER JOIN " . DB_PREFIX . "order_product oop ON(oop.order_id=oor.order_id)
+LEFT JOIN " . DB_PREFIX . "order_option opo ON(opo.order_product_id=oop.order_product_id)";
+
+		if (!empty($data['filter_order_status_id'])) {
+			$sql .= " WHERE o.order_status_id = '" . (int)$data['filter_order_status_id'] . "'";
+		} else {
+			$sql .= " WHERE oor.order_status_id > '0'";
+		}
+
+		if (!empty($data['filter_date_start'])) {
+			$sql .= " AND DATE(oor.date_added) >= '" . $this->db->escape($data['filter_date_start']) . "'";
+		}
+
+		if (!empty($data['filter_date_end'])) {
+			$sql .= " AND DATE(oor.date_added) <= '" . $this->db->escape($data['filter_date_end']) . "'";
+		}
+
+		if (!empty($data['filter_customer_id'])) {
+			$sql .= " AND oor.customer_id = '" . $this->db->escape($data['filter_customer_id']) . "'";
+		}
+
+		if (!empty($data['filter_product_id'])) {
+			$sql .= " AND oop.product_id = '" . $this->db->escape($data['filter_product_id']) . "'";
+		}
+		$query = $this->db->query($sql);
+		
+		if($query->row)
+		return $query->row['total'];
+		else
+                return "";
+
+	}	]]></add>
+		</operation>
+        
+	</file>
+ 
+    <!-- Controller --> 
+  
+    <file name="admin/controller/report/product_purchased.php">
+		
+    <operation>
+			<search position="before" offset="0"><![CDATA[$this->data['button_filter'] = $this->language->get('button_filter');]]></search>
+            <add><![CDATA[$this->data['button_productexport'] = "Products and Customers Export";
+			$this->data['productexport'] = $this->url->link('report/product_purchased/export_productandcustomer', 'token=' . $this->session->data['token'] . $url, 'SSL');]]></add>
+	</operation>    
+    <operation>
+		<search position="before" offset="0"><![CDATA[public function index() { ]]></search>
+        <add><![CDATA[public function export_productandcustomer(){
+
+		$this->load->model('sale/customer');
+		
+		$this->load->model('catalog/product');
+		
+		$this->load->model('report/product');
+	
+		if (isset($this->request->get['filter_date_start'])) {
+			$filter_date_start = $this->request->get['filter_date_start'];
+		} else {
+			$filter_date_start = '';
+		}
+
+		if (isset($this->request->get['filter_date_end'])) {
+			$filter_date_end = $this->request->get['filter_date_end'];
+		} else {
+			$filter_date_end = '';
+		}
+		
+		$data = array(
+			'filter_date_start'	     => $filter_date_start, 
+			'filter_date_end'	     => $filter_date_end, 
+			//'filter_order_status_id' => $filter_order_status_id,
+			//'start'                  => ($page - 1) * $this->config->get('config_admin_limit'),
+			//'limit'                  => $this->config->get('config_admin_limit')
+		);
+		
+		$customers = $this->model_report_product->getPurchasedCustomers();
+		$products = $this->model_report_product->getPurchasedProducts();
+		//$customers = $this->model_sale_customer->getCustomers();
+		//$products=$this->model_catalog_product->getProducts();
+		
+		/* Include PHPExcel class */
+		chdir('../system/library/PHPExcel');
+		require_once( 'Classes/PHPExcel.php' );
+		chdir('../../../admin');
+		
+		// Instantiate a new PHPExcel object
+		$objPHPExcel = new PHPExcel(); 
+		
+		$objPHPExcel ->getProperties()->setCreator("IRS SOftware");
+		$objPHPExcel->getProperties()->setTitle("Products Purchased Reports - Customer based ");
+		
+		
+		// Set the active Excel worksheet to sheet 0
+		$objPHPExcel->setActiveSheetIndex(0); 
+		// Initialise the Excel row number
+		$col=1;
+		$row=1;
+		$column_count=count($customers)+2;//first row+ minimum quantity+total orders	
+		/* Set border style */
+		$styleArray = array(
+					  'borders' => array(
+					  'allborders' => array(
+					  'style' => PHPExcel_Style_Border::BORDER_THIN
+						  )
+					  )
+					  );					  
+		
+        $objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow(0, $row, "Products \ Customers");
+		
+		foreach($customers as $custom)
+			{
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $custom['customer']);
+			//	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $custom['name']);
+				
+			}
+			
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, "Minimum Quantity");
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, "Total Orders");
+			
+			$firstcolString = PHPExcel_Cell::stringFromColumnIndex($column_count);
+			$objPHPExcel=$this->cellColor('A'.$row.':'.$firstcolString.$row, 'c3d69b',$objPHPExcel);
+				
+			$objPHPExcel->getActiveSheet()->getStyle('A'.$row.':'.$firstcolString.$row)->applyFromArray($styleArray);
+			
+		foreach ($products as $product)
+			{
+				$col=0;
+				$row++; // increment row
+				$total = 0;
+				
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $product['productname']);
+						
+			//	$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $product['name']);
+								
+				foreach($customers as $customer)
+				{	
+					$customarray=array('filter_customer_id'=>$customer['customer_id'],'filter_product_id'=>$product['product_id']);
+					$subtotal=$this->model_report_product->getProductTotal($customarray);
+					$total += $subtotal;
+					
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $subtotal);				
+				}
+				
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $product['minimum']);
+				$objPHPExcel->getActiveSheet()->setCellValueByColumnAndRow($col++, $row, $total);
+				if($row%2!=0)
+				$objPHPExcel=$this->cellColor('A'.$row.':'.$firstcolString.$row, 'dce6f2',$objPHPExcel);
+				
+				
+				$objPHPExcel->getActiveSheet()->getStyle('A'.$row.':'.$firstcolString.$row)->applyFromArray($styleArray);
+			
+				
+			}
+					
+						
+		// Redirect output to a client’s web browser (Excel5) 
+		header('Content-Type: application/vnd.ms-excel'); 
+		
+	//	header('Content-Disposition: attachment;filename="Custom_export'.date("Y m d G i s").'.csv"'); 
+		
+		header('Content-Disposition: attachment;filename="Custom_export_'.date("Y m d G i s").'.xlsx"'); 
+		
+		header('Cache-Control: max-age=0'); 
+			
+		// Instantiate a Writer to create an OfficeOpenXML Excel .xlsx file
+		
+		$objWriter = new PHPExcel_Writer_Excel2007($objPHPExcel); 
+	
+		// Write the Excel file to filename some_excel_file.xlsx in the current directory
+		
+		$objWriter->save('some_excel_file.xlsx'); 
+		
+		/* Download CsV file in downloads */
+		$objWriter->save('php://output'); 
+					
+        chdir('../../..');        	
+
+	}
+	
+	public function cellColor($cells,$color,$objPHPExcel){
+		
+		$objPHPExcel->getActiveSheet()->getStyle($cells)->getFill()->applyFromArray(array(
+        'type' => PHPExcel_Style_Fill::FILL_SOLID,
+        'startcolor' => array(
+             'rgb' => $color
+        )
+    ));
+    return $objPHPExcel;
+	}]]></add>
+		</operation>
+        
+	</file>
+
+<!-- View -->
+
+	<file name="admin/view/template/report/product_purchased.tpl">
+		<operation>
+			<search position="replace"><![CDATA[<a onclick="filter();" class="button"><?php echo $button_filter; ?></a>]]></search>
+			<add><![CDATA[<a href="<?php echo $productexport; ?>" class="button"><?php echo $button_productexport; ?></a>&nbsp;<a onclick="filter();" class="button"><?php echo $button_filter; ?></a>]]></add>
+		</operation>
+	</file>
+    
+  
+  
+	
+</modification>

@@ -2,7 +2,7 @@
 	<id><![CDATA[@tik Remove Add to Cart button for Out of Stock items]]></id>
 	<version><![CDATA[1.4.1]]></version>
 	<vqmver><![CDATA[2.4.1]]></vqmver>
-	<author><![CDATA[OC2PS]]></author>
+	<author><![CDATA[OC2PS / updated by mZoo]]></author>
 	
 	<file name="catalog/view/theme/*/template/product/product.tpl">
 		<operation>
@@ -12,6 +12,31 @@ echo "<span style=\"color: red; font-size: 16px;\"><span class=\"outofstock\">" 
 } else { 
 echo "<input type=\"button\" value=\"" . $button_cart . "\" id=\"button-cart\" class=\"button\" />";
 } ?>]]></add>
+		</operation>
+		<operation>
+			<search position="after" offset="9"><![CDATA[$('#button-cart').bind('click', function() {]]></search>
+			<add><![CDATA[
+			if (json['error']['warning'] = 'No Stock'){
+					$('div.stock_details').html("There's none left. This is a good thing! We're building community as we eat.");
+					$('div.stock_details').addClass('error');
+					$.fn.extend({
+    					disable: function(state) {
+      					  return this.each(function() {
+          					  var $this = $(this);
+           					 if($this.is('input, button'))
+             					 this.disabled = state;
+           					 else
+            					  $this.toggleClass('disabled', state);
+        					});
+   					 	}
+					});
+
+					// Disabled on all:
+					$('input, button').disable(true);
+					$('input, button').css('background','none');
+					$('input, button').css('cursor','not-allowed');
+
+				}]]></add>
 		</operation>
 		<operation>
 			<search position="replace"><![CDATA[<a onclick="addToCart('<?php echo $product['product_id']; ?>');" class="button"><?php echo $button_cart; ?></a>]]></search>

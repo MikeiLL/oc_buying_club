@@ -6,7 +6,7 @@
     <author>Mike iLL</author>
     <file name="catalog/view/theme/*/template/common/header.tpl">
         <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
-            <search position="after"><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/\(.*?\)/stylesheet/stylesheet.css" />]]></search>
+        	<search regex="true" position="after"><![CDATA[~\<link rel="stylesheet" type="text/css" href="catalog/view/theme/.*/stylesheet/stylesheet.css" />~]]></search>
             <add><![CDATA[<link rel="stylesheet" type="text/css" href="catalog/view/theme/yooresponsive/stylesheet/magnific-popup.css" />]]></add>
             <comment><![CDATA[
     		TODO: Figure out how to best store and track dependencies like magnific popup.
@@ -61,9 +61,7 @@
         <operation info="Let 'em know item doesn't automatically refresh count.">
             <search position="replace"><![CDATA[<?php echo $stock; ?></div>]]></search>
             <add><![CDATA[
-            
-            <?php echo $stock; ?> (Refresh page to see updated item quantity.)</div>
-            
+           <div class="stock_details" style="display:inline"> <?php echo $stock; ?> (Refresh page to see updated item quantity.)</div></div>
 ]]></add>
         </operation>
         
@@ -85,6 +83,16 @@
         //VQMOD
 ]]></add>
         </operation>
+        <operation info="Add JSON warning if stock below one.">
+            <search position="after" offset="16"><![CDATA[public function add() {]]></search>
+            <add><![CDATA[
+            //VQMOD
+            if ($product_info['quantity'] < 1) {
+   				$json['error']['warning'] = sprintf('No Stock', $product_info['quantity']);
+			}	
+			//VQMOD]]></add>
+        </operation>
+        
         <operation info="If customer not logged in, redirect to login.">
             <search position="after" offset="4"><![CDATA[ public function add() { ]]></search>
             <add><![CDATA[
@@ -269,6 +277,8 @@
             <add><![CDATA[if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers']))) {]]></add>
         </operation>
     </file>
+    
+    			
     
     <file name="catalog/controller/checkout/payment_address.php">
         <operation info="Barra compra do Guest e Manda o parametro de redirecinamento">
